@@ -2,14 +2,14 @@ spring:
   application:
     name: account-service
   datasource:
-    url: jdbc:mysql//localhost:3306/account_db?createDatabaseIfNotExists=true
+    url: jdbc:mysql://localhost:3306/account_db?createDatabaseIfNotExist=true
     username: root
-    password: "$1715Akshay"
+    password: "akshay1715"
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
       ddl-auto: update
-    show:sql: true
+    show-sql: true
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
@@ -19,7 +19,7 @@ spring:
       group-id: account-service-group
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.spring.framework.kafka.support.serializer.JsonDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring:
           json:
@@ -33,7 +33,7 @@ spring:
                 type: java.util.HashMap
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.spring.framework.kafka.support.serializer.JsonSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
 server:
   port: 8081
@@ -42,4 +42,4 @@ management:
   endpoints:
     web:
       exposure:
-        include: health.info
+        include: health,info

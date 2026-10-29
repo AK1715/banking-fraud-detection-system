@@ -37,6 +37,9 @@ public class FraudDetectionService {
     private static final String FRAUD_CHECK_CLEAN_RESULT_TOPIC = "fraud.check.clean";
 
     public void checkTransaction(Map<String, Object> payload){
+        log.info("FRAUD CHECK RECEIVED: transactionId={}, payload={}",
+                payload.get("transactionId"), payload);
+
         String transactionId = (String) payload.get("transactionId");
         String accountNumber = (String) payload.get("senderAccountNumber");
         BigDecimal amount = new BigDecimal(payload.get("amount").toString());

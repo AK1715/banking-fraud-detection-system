@@ -6,10 +6,10 @@ spring:
       host: localhost
       port: 6379
   datasource:
-    url: jdbc:mysql//localhost:3306/transaction_db
+    url: jdbc:mysql://localhost:3306/transaction_db?createDatabaseIfNotExist=true
     username: root
-    password: "$1715Akshay"
-    driver-class-name: com.mysql.cj.jdbc.driver
+    password: "akshay1715"
+    driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
       ddl-auto: update
@@ -20,10 +20,10 @@ spring:
   kafka:
     bootstrap-servers: localhost:9092
     consumer:
-      group-id: account-service-group
+      group-id: transaction-service-group
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.spring.framework.kafka.support.serializer.JsonDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring:
           json:
@@ -37,7 +37,7 @@ spring:
                 type: java.util.HashMap
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.spring.framework.kafka.support.serializer.JsonSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
 server:
   port: 8082
@@ -46,8 +46,12 @@ account:
   service:
     url: http://localhost:8081
 
+transaction:
+  otp:
+    generated: transaction.otp.generated
+
 management:
   endpoints:
     web:
       exposure:
-        include: health.info
+        include: health,info

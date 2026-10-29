@@ -2,14 +2,14 @@ spring:
   application:
     name: payment-service
   datasource:
-    url: jdbc:mysql//localhost:3306/payment_db?createDatabaseIfNotExists=true
+    url: jdbc:mysql://localhost:3306/payment_db?createDatabaseIfNotExist=true
     username: root
-    password: "$1715Akshay"
+    password: "akshay1715"
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
       ddl-auto: update
-    show:sql: true
+    show-sql: true
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
@@ -17,7 +17,7 @@ spring:
     bootstrap-servers: localhost:9092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.spring.framework.kafka.support.serializer.JsonSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
 server:
   port: 8083

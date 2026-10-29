@@ -11,67 +11,78 @@ import java.util.Map;
 @Slf4j
 public class NotificationService {
 
-    @KafkaListener(topics = "${transaction.otp.generated}")
+    @KafkaListener(topics = "transaction.otp.generated")
     public void consumeOtpGenerated(
-            @Payload Map<String, Object> payload){
-        try {
-            String accountNumber = (String) payload.get("accountNumber");
-            String otp = (String) payload.get("otp");
-            String transactionId = (String) payload.get("transactionId");
-            String amount = payload.get("amount").toString();
-            String reason = (String) payload.get("reason");
+            @Payload Map<String, Object> payload) {
 
-            sendAlert(accountNumber,
-                    "TRANSACTION VERIFICATION REQUIRED",
-                    String.format(
-                            "suspicious activity detected on your account. " +
-                            "Reason: %s " +
-                            "A transaction of %s is pending verification " +
-                            "Your OTP is %s. valid for 5 minutes " +
-                            "If this wasn't you - ignore message."
-                    )
+        log.info("OTP event received: {}", payload);
+
+        try {
+            String accountNumber =
+                    String.valueOf(payload.get("accountNumber"));
+            String otp = String.valueOf(payload.get("otp"));
+            String amount = String.valueOf(payload.get("amount"));
+            String reason = String.valueOf(payload.get("reason"));
+
+            String message = String.format(
+                    "Suspicious activity detected. Reason: %s. " +
+                            "A transaction of %s is pending verification. " +
+                            "Your OTP is %s. Valid for 5 minutes.",
+                    reason, amount, otp
             );
-        }
-        catch (Exception e) {
-            log.error("Error sending notification: {}", e.getMessage());
+
+            sendAlert(
+                    accountNumber,
+                    "TRANSACTION VERIFICATION REQUIRED",
+                    message
+            );
+
+        } catch (Exception e) {
+            log.error("Error sending OTP notification", e);
+            throw e;
         }
     }
 
+
     @KafkaListener(topics = "transaction.completed")
     public void consumeTransactionCompleted(
-            @Payload Map<String, Object> payload){
+            @Payload Map<String, Object> payload) {
 
         try {
+            String senderAccount =
+                    String.valueOf(payload.get("senderAccountNumber"));
+            String receiverAccount =
+                    String.valueOf(payload.get("receiverAccountNumber"));
+            String amount = String.valueOf(payload.get("amount"));
 
-            String senderAccount = (String) payload.get("senderAccountNumber");
-            String receiverAccount = (String) payload.get("receiverAccountNumber");
-            String amount = payload.get("amount").toString();
+            log.info("Transaction completed event received: {}", payload);
 
-            // DEBIT ALERT TO SENDER ACCOUNT
+            // Debit alert to sender
             sendAlert(
                     senderAccount,
                     "DEBIT ALERT",
                     String.format(
-                            "%s debited from account %s ",
+                            "%s debited from your account %s.",
                             amount, senderAccount
                     )
             );
 
-            // CREDIT ALERT TO RECEIVER ACCOUNT
-            sendAlert(receiverAccount,
+            // Credit alert to receiver
+            sendAlert(
+                    receiverAccount,
                     "CREDIT ALERT",
                     String.format(
-                            "%s credited from account %s ",
-                            amount, receiverAccount
+                            "%s credited to your account %s from account %s.",
+                            amount, receiverAccount, senderAccount
                     )
             );
 
+        } catch (Exception e) {
+            log.error("Error sending transaction notification", e);
+            throw e;
         }
-        catch (Exception e){
-            log.error("Error sending transaction notification: {}", e.getMessage());
-        }
-
     }
+
 
     @KafkaListener(topics = "fraud.detected")
     public void consumeFraudDetected(
@@ -161,7 +172,11 @@ public class NotificationService {
     }
 
     private void sendAlert(String accountNumber, String subject, String message){
-
+        log.info("========== BANK NOTIFICATION ==========");
+        log.info("Account  : {}", accountNumber);
+        log.info("Subject  : {}", subject);
+        log.info("Message  : {}", message);
+        log.info("========================================");
     }
 
 }

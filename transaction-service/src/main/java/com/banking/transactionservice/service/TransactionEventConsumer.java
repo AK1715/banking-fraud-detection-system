@@ -54,6 +54,8 @@ public class TransactionEventConsumer {
             // Generate 6 digit otp
             String otp = String.format("%06d", (int) (Math.random() * 900000) + 100000);
 
+//            log.info("OPT is Here : {}", otp);
+
             // Store OTP in Redis - expires in 5 minutes
             String otpKey = "verification:otp" + transactionId;
             redisTemplate.opsForValue().set(otpKey, otp, OTP_EXPIRY_MINUTES, TimeUnit.MINUTES);
@@ -62,7 +64,7 @@ public class TransactionEventConsumer {
             transaction.setStatus(TransactionStatus.PENDING_VERIFICATION);
             transactionRepository.save(transaction);
 
-            log.info("OTP Generated for transaction: {} expires in {} min",
+            log.info("OTP Generated for transaction id: {} expires in {} min",
                     transactionId, OTP_EXPIRY_MINUTES);
 
             // Notify user
@@ -80,15 +82,32 @@ public class TransactionEventConsumer {
         }
     }
 
+    @KafkaListener(
+            topics = "fraud.check.clean",
+            groupId = "transaction-service-group"
+    )
     public void consumeFraudCheckCleanResult(
-            @Payload Map<String, Object> payload){
+            @Payload Map<String, Object> payload) {
+
+        log.info("FRAUD CLEAN EVENT RECEIVED: {}", payload);
 
         try {
-            String transactionId = (String) payload.get("transactionId");
-            transactionService.processCleanResult(transactionId);
-        } catch (Exception e) {
-            log.error("Error processing fraud check result: {}", e.getMessage());
-        }
+            Object id = payload.get("transactionId");
+            if (id == null) {
+                throw new IllegalArgumentException(
+                        "Missing transactionId in fraud clean event");
+            }
 
+            String transactionId = String.valueOf(id);
+
+            transactionService.processCleanResult(transactionId);
+
+            log.info("Fraud clean result processed: {}", transactionId);
+
+        } catch (Exception e) {
+            log.error("Error processing fraud clean result. Payload: {}",
+                    payload, e);
+            throw e;
+        }
     }
 }
